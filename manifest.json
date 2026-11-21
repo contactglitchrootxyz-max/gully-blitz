@@ -1,0 +1,11 @@
+{
+  "name": "Gully Blitz",
+  "short_name": "Gully Blitz",
+  "description": "Desi street runner game",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#1B120C",
+  "theme_color": "#1B120C"
+}
