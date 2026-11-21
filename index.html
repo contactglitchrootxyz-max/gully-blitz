@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Gully Blitz — Single File Indian Street Runner</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+  html,body{width:100%;height:100%;overflow:hidden;background:#1B120C;color:#FFF8EE;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  #app{position:relative;width:100%;height:100%;max-width:480px;margin:0 auto;overflow:hidden;background:#23150E;box-shadow:0 0 40px rgba(0,0,0,.7)}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
+  .overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:18px 16px 20px;pointer-events:none}
+  .hidden{display:none!important}
+  .center-modal{position:absolute;inset:0;background:rgba(18,10,6,.82);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+  .card{position:relative;width:100%;max-width:350px;background:#1E130D;border:2px solid #F4B23A;border-radius:18px;padding:18px;box-shadow:0 18px 44px rgba(0,0,0,.75);max-height:88vh;overflow-y:auto}
+  .close-x{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:10px;border:1px solid rgba(244,178,58,.55);background:#2C1C14;color:#FFD166;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  .close-x:hover{background:#E86A2C;color:#FFF8EE}
+  .title-plaque{background:#23150E;border:3px solid #F4B23A;border-radius:18px;padding:10px 18px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.55)}
+  .title-plaque h1{font-size:32px;font-weight:900;letter-spacing:1.5px;color:#FFF4DF;text-shadow:0 3px 0 #1B120C}
+  .title-plaque p{font-size:11px;font-weight:800;letter-spacing:2px;color:#FFD166;margin-top:2px}
+  .meta-row{margin-top:8px;text-align:center;font-size:12px;font-weight:700;text-shadow:0 1px 3px #000}
+  .rival-pill{margin:6px auto 0;display:inline-block;background:rgba(27,18,12,.85);border:1px solid rgba(244,178,58,.6);border-radius:10px;padding:4px 10px;font-size:11px;font-weight:800;color:#FFD166}
+  .dock{pointer-events:auto;display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;margin:0 auto}
+  .btn{cursor:pointer;border:none;border-radius:14px;font-weight:800;transition:transform .1s;font-family:inherit}
+  .btn:active{transform:translateY(2px)}
+  .btn-play{background:#E86A2C;color:#FFF8EE;border:2px solid #FFD166;padding:13px;font-size:22px;box-shadow:0 5px 0 #8F340B}
+  .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .btn-sec{background:rgba(27,18,12,.9);color:#FFF4DF;border:1px solid rgba(244,178,58,.5);padding:10px 8px;font-size:12px}
+  .btn-green{background:#14261C;color:#4ADE80;border:1px solid rgba(74,222,128,.7);padding:10px 8px;font-size:12px}
+  .btn-gold{background:#2B190E;color:#FFD166;border:1px solid rgba(255,209,102,.7);padding:10px 8px;font-size:12px}
+  .hud-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .score-big{font-size:28px;font-weight:900;line-height:1;text-shadow:0 2px 4px #000}
+  .hud-sub{font-size:12px;font-weight:800;color:#FFD166;text-shadow:0 1px 3px #000;margin-top:3px}
+  .hud-btns{display:flex;gap:6px;pointer-events:auto}
+  .icon-btn{width:38px;height:38px;border-radius:10px;background:rgba(27,18,12,.85);border:1px solid rgba(244,178,58,.5);color:#FFF8EE;font-size:15px;font-weight:900;cursor:pointer}
+  .dog-bar-wrap{margin-top:6px;text-align:right;font-size:10px;font-weight:800;text-shadow:0 1px 2px #000}
+  .dog-bar{width:92px;height:8px;background:#2C1B12;border:1px solid #F4B23A;border-radius:6px;overflow:hidden;margin-left:auto;margin-top:2px}
+  .dog-fill{height:100%;width:20%;background:#E86A2C;transition:width .15s}
+  .bubble-zone{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:10px}
+  .commentator{background:rgba(27,18,12,.92);border:2px solid #F4B23A;border-radius:14px;padding:6px 12px;font-size:12px;font-weight:800;color:#FFD166;text-align:center;max-width:92%;box-shadow:0 6px 14px rgba(0,0,0,.45)}
+  .comic-pop{background:#FFF8EE;color:#1B120C;border:3px solid #1B120C;border-radius:14px;padding:5px 12px;font-size:13px;font-weight:900;box-shadow:0 4px 0 #1B120C}
+  .boing-flash{font-size:42px;font-weight:900;color:#FFD166;text-shadow:0 4px 0 #8F340B,0 0 18px rgba(0,0,0,.8);letter-spacing:2px}
+  .event-banner{background:#E86A2C;color:#FFF8EE;border:2px solid #FFD166;border-radius:12px;padding:4px 12px;font-size:12px;font-weight:900}
+  .pwr-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:6px}
+  .pwr-tag{background:rgba(27,18,12,.88);border:1px solid #FFD166;border-radius:8px;padding:3px 8px;font-size:11px;font-weight:800;color:#FFD166}
+  .hint{text-align:center;font-size:11px;font-weight:700;opacity:.9;text-shadow:0 1px 3px #000}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+  .stat-box{background:#2A1A11;border:1px solid rgba(244,178,58,.35);border-radius:12px;padding:8px;text-align:center}
+  .stat-box small{display:block;font-size:10px;color:#D9BFA3;font-weight:700}
+  .stat-box b{font-size:18px;color:#FFD166}
+  .quote{background:#2B190E;border-left:3px solid #E86A2C;padding:8px 10px;border-radius:8px;font-size:12px;font-style:italic;color:#FFF4DF;margin:8px 0}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(244,178,58,.18);font-size:13px;font-weight:700}
+  .toggle-row input{width:20px;height:20px;accent-color:#E86A2C}
+  .char-item{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#2A1A11;border:1px solid rgba(244,178,58,.35);border-radius:12px;padding:10px;margin-top:8px}
+  .char-item.active{border-color:#4ADE80;background:#16291D}
+  .char-info b{font-size:13px;color:#FFF8EE;display:block}
+  .char-info small{font-size:11px;color:#D9BFA3}
+  .share-box{background:#2A1A11;border:1px dashed #F4B23A;border-radius:10px;padding:8px;font-size:11px;color:#FFD166;text-align:center;margin:8px 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <!-- TITLE OVERLAY -->
+  <div id="titleOverlay" class="overlay">
+    <div style="text-align:center">
+      <div class="title-plaque">
+        <h1>GULLY BLITZ</h1>
+        <p id="seasonSub">MORNING GULLY</p>
+      </div>
+      <div class="meta-row" id="titleStats">Coins: 0 · Best: 0 · Jokes: 0/12</div>
+      <div class="rival-pill" id="rivalBadge">Daily Rival Target: 2,500</div>
+    </div>
+    <div class="dock">
+      <button class="btn btn-play" id="btnPlay">Run Now</button>
+      <div class="btn-row">
+        <button class="btn btn-green" id="btnGarage">Garage (1/5)</button>
+        <button class="btn btn-gold" id="btnSettings">Settings</button>
+      </div>
+      <div class="hint">Swipe / Arrow Keys / WASD · Up: Jump · Down: Slide</div>
+    </div>
+  </div>
+
+  <!-- HUD OVERLAY -->
+  <div id="hudOverlay" class="overlay hidden">
+    <div>
+      <div class="hud-top">
+        <div>
+          <div class="score-big" id="hudScore">0</div>
+          <div class="hud-sub" id="hudMeta">Coins: 0 · 0m · LVL 1</div>
+          <div class="hud-sub" id="hudCombo" style="color:#4ADE80"></div>
+        </div>
+        <div>
+          <div class="hud-btns">
+            <button class="icon-btn" id="btnMute" title="Mute">🔊</button>
+            <button class="icon-btn" id="btnPause" title="Pause">⏸</button>
+          </div>
+          <div class="dog-bar-wrap">
+            <span id="dogLabel">DOG</span>
+            <div class="dog-bar"><div class="dog-fill" id="dogFill"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="bubble-zone">
+        <div class="event-banner hidden" id="eventBanner"></div>
+        <div class="boing-flash hidden" id="boingFlash">BOING!</div>
+        <div class="commentator hidden" id="commentatorBox"></div>
+        <div class="comic-pop hidden" id="comicPop"></div>
+      </div>
+    </div>
+    <div>
+      <div class="pwr-row" id="pwrRow"></div>
+    </div>
+  </div>
+
+  <!-- PAUSE MODAL -->
+  <div id="pauseModal" class="center-modal hidden">
+    <div class="card" style="text-align:center">
+      <h2 style="color:#FFD166;margin-bottom:14px">PAUSED</h2>
+      <div class="dock">
+        <button class="btn btn-play" id="btnResume" style="font-size:18px;padding:11px">Resume</button>
+        <button class="btn btn-sec" id="btnRestartPause">Restart</button>
+        <button class="btn btn-sec" id="btnHomePause">Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME OVER MODAL -->
+  <div id="gameOverModal" class="center-modal hidden">
+    <div class="card">
+      <h2 style="text-align:center;color:#FFD166;font-size:24px" id="goTitle">CAUGHT!</h2>
+      <p style="text-align:center;font-size:12px;color:#4ADE80;margin-top:3px" id="goGag"></p>
+      <div class="stat-grid">
+        <div class="stat-box"><small>SCORE</small><b id="goScore">0</b></div>
+        <div class="stat-box"><small>BEST</small><b id="goBest">0</b></div>
+        <div class="stat-box"><small>DISTANCE</small><b id="goDist">0m</b></div>
+        <div class="stat-box"><small>COINS</small><b id="goCoins">0</b></div>
+      </div>
+      <div class="quote" id="goQuote"></div>
+      <div class="share-box" id="shareText"></div>
+      <div class="dock" style="margin-top:8px">
+        <button class="btn btn-gold" id="btnMystery">🎁 Open Mystery Box</button>
+        <div class="btn-row">
+          <button class="btn btn-green" id="btnShare">Copy Share Card</button>
+          <button class="btn btn-sec" id="btnHomeGo">Home</button>
+        </div>
+        <button class="btn btn-play" id="btnAgain" style="font-size:19px;padding:11px">Run Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GARAGE MODAL -->
+  <div id="garageModal" class="center-modal hidden">
+    <div class="card">
+      <button type="button" class="close-x" id="btnXGarage" aria-label="Close">✕</button>
+      <h2 style="text-align:center;color:#4ADE80;font-size:22px;padding:0 28px">CHARACTER GARAGE</h2>
+      <p style="text-align:center;font-size:11px;color:#D9BFA3;margin-top:2px">Complete tasks to unlock stronger runners!</p>
+      <div id="garageList"></div>
+      <button class="btn btn-play" id="btnCloseGarage" style="width:100%;margin-top:14px;font-size:16px;padding:10px">Done</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settingsModal" class="center-modal hidden">
+    <div class="card">
+      <button type="button" class="close-x" id="btnXSettings" aria-label="Close Settings">✕</button>
+      <h2 style="text-align:center;color:#FFD166;font-size:22px;margin-bottom:10px;padding:0 28px">SETTINGS</h2>
+      <label class="toggle-row"><span>Mute All Audio</span><input type="checkbox" id="optMute" /></label>
+      <label class="toggle-row"><span>Funny Hinglish Pop-ups</span><input type="checkbox" id="optPopups" /></label>
+      <label class="toggle-row"><span>Funny Commentator</span><input type="checkbox" id="optCommentator" /></label>
+      <label class="toggle-row"><span>Meme Mode (Crash Zoom + BOING)</span><input type="checkbox" id="optMeme" /></label>
+      <button class="btn btn-play" id="btnCloseSettings" style="width:100%;margin-top:14px;font-size:16px;padding:10px">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const CFG = {
+    baseSpeed: 22,
+    maxSpeed: 54,
+    gravity: 48,
+    jumpVel: 18.5,
+    slideDur: 0.7,
+    commentatorCooldown: 8,
+    popupCooldown: 7,
+    crashReplayDur: 1.25,
+    surpriseChance: 0.08,
+    powerCutDur: 10,
+    chaiBreakDur: 7,
+    baraatDur: 8,
+  };
+
+  const SAVE_KEY = 'gully_blitz_single_v1';
+  const defaultSave = () => ({
+    bestScore: 0,
+    totalCoins: 0,
+    totalDist: 0,
+    bestRunCoins: 0,
+    baraatsDodged: 0,
+    selectedChar: 'starter',
+    jokes: [],
+    rivalBeatenDate: '',
+    opts: { mute: false, popups: true, commentator: true, meme: false },
+  });
+  let save = defaultSave();
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) save = { ...defaultSave(), ...JSON.parse(raw), opts: { ...defaultSave().opts, ...(JSON.parse(raw).opts || {}) } };
+  } catch {}
+  const persist = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch {} };
+
+  const CHARS = [
+    { id: 'starter', name: 'School Kid', shirt: '#E86A2C', pants: '#2B5B84', bonus: 'Balanced Starter', mult: 1.0, check: () => true, task: 'Unlocked by default' },
+    { id: 'cricketer', name: 'Street Cricketer', shirt: '#1E88E5', pants: '#F5F5F5', bonus: '+15% Score Multiplier', mult: 1.15, check: (s) => s.totalCoins >= 50, task: 'Collect 50 total coins' },
+    { id: 'delivery', name: 'Express Delivery Rider', shirt: '#E53935', pants: '#263238', bonus: '+25% Score Multiplier', mult: 1.25, check: (s) => s.totalDist >= 400, task: 'Run 400m total distance' },
+    { id: 'dadi', name: 'Turbo Dadi', shirt: '#9C27B0', pants: '#FFD54F', bonus: '+35% Score Multiplier', mult: 1.35, check: (s) => s.bestScore >= 1500, task: 'Score 1,500 in one run' },
+    { id: 'hero', name: 'Desi Superhero', shirt: '#F9A825', pants: '#C62828', bonus: '+50% Score Multiplier', mult: 1.5, check: (s) => s.bestScore >= 3500, task: 'Score 3,500 in one run' },
+  ];
+  const getChar = () => CHARS.find(c => c.id === save.selectedChar) || CHARS[0];
+
+  const COMMENTATOR = {
+    near: [
+      'Arre baal-baal bache! Umpire ne NOT OUT diya!',
+      'Kya cut maara hai, poore mohalle mein taaliyan!',
+      'Ye toh seedha Olympic mein jaayega!',
+      'Mara tha chhakka... aur gaadi se bach gaye!',
+      'Kya jugaad hai, hawa mein nikal gaye!',
+    ],
+    combo: [
+      'Chhota Packet, Bada Dhamaka chal raha hai!',
+      'Aaj toh sadak pe aag laga di!',
+      'Paisa baras raha hai, rukna mana hai!',
+      'Jugaadu Legend mode ON ho gaya!',
+    ],
+    power: [
+      'Garam chai ka jadoo, ab koi rok ke dikhaye!',
+      'Samosa turbo boost — full speed aage!',
+      'Nimbu-mirchi lag gayi, ab nazar nahi lagegi!',
+      'Jalebi magnet active — saare sikke kheench liye!',
+    ],
+    crash: [
+      'Mara tha chhakka... nahi, seedha takkar ho gayi!',
+      'Clean bowled! Seedha zameen par landing!',
+      'Third umpire bola: seedha bhoosa mein land!',
+      'Horn bajte reh gaye, player ruk gaye!',
+    ],
+    dog: [
+      'Kutta full turbo mein peeche laga hai!',
+      'Tez bhaago bhai, biscuit khatam ho gaya!',
+      'Dil ki dhadkan tez! Peeche speed badh gayi!',
+    ],
+    record: [
+      'Naya record! Sabke hosh udd gaye!',
+      'Mohalle mein laddoo baanto, record toot gaya!',
+    ],
+  };
+
+  const POPUPS = {
+    near: ['Bach gaya bhai!', 'Zara dekh ke!', 'Oye hoye!', 'Side please!'],
+    coin: ['Paisa hi paisa!', 'Full vasooli!', 'Sikka streak!'],
+    dog: ['Dog peeche hai!', 'Bhaag bhaag!', 'Tez bhaago!'],
+    crash: ['Arre bhai side dena!', 'Mummy ko kya bolunga?', 'Dhishoom!'],
+  };
+
+  const CRASH_GAGS = [
+    { name: 'Haystack Spin', text: 'Spun like a top and landed in a haystack!', sfx: 'boing', flash: 'BOING!' },
+    { name: 'Banana Peel Slip', text: 'Slipped dramatically on a stray banana peel!', sfx: 'slip', flash: 'WHOOPS!' },
+    { name: 'Chai Splash', text: 'Got a tiny garam chai splash on the nose!', sfx: 'boing', flash: 'SPLASH!' },
+    { name: 'Pigeon Crown', text: 'A pigeon calmly sat on top of the head!', sfx: 'pigeon', flash: 'COO-COO!' },
+    { name: 'Cow Stare', text: 'A calm cow stared straight at the camera!', sfx: 'cow', flash: 'MOOO!' },
+    { name: 'Dog Facepalm', text: 'Even the chasing dog did a facepalm!', sfx: 'laugh', flash: 'FACEPALM!' },
+  ];
+
+  const GO_QUOTES = [
+    'Thoda aur tez bhaagte toh record pakka tha!',
+    'Mummy bol rahi thi padhai kar!',
+    'Bas ek aur try, promise!',
+    'Chai thandi ho gayi, jaldi dobara bhaago!',
+    'Auto wale ne indicator nahi diya tha!',
+  ];
+
+  const JOKES = [
+    'Chai bina subah adhoori, aur brake bina auto!',
+    'Street cricket rule #1: Jo ball maarega wahi laayega!',
+    'Traffic jam mein horn bajane se road chauda nahi hota!',
+    'Nimbu-mirchi lagane ke baad Wi-Fi bhi fast chalta hai!',
+    'Samosa garam ho toh duniya ki har tension khatam!',
+    'Homework bhi 2x speed pe ho jaaye toh kya baat!',
+    'Pigeon ko traffic signal se koi matlab nahi hota!',
+    'Baraat aaye toh naachna compulsory hai!',
+    'Thela slow hai par uska swag supersonic hai!',
+    'Power cut mein hi sabse zyada ghost stories yaad aati hain!',
+    'Jalebi seedhi ho jaaye par mohalle ki sadak nahi!',
+    'Gully Blitz khelne ke baad: "Bas ek last run, pakka!"',
+  ];
+
+  const BILLBOARDS = [
+    'NIMBU MIRCHI\n100% Nazar Suraksha',
+    'GARAM CHAI\nGussa Thanda Kare',
+    'BLITZ COACHING\nTopper Bano Kal Se',
+    'JUGAAD MOTORS\nSofa + Scooter',
+    'DESI SAMOSA\nExtra Chutney Free',
+  ];
+
+  const getDailyRival = () => {
+    const d = new Date();
+    const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    const seed = d.getFullYear() * 31 + (d.getMonth() + 1) * 17 + d.getDate() * 13;
+    return { key, score: 1500 + (seed % 8) * 350 };
+  };
+
+  const getSeason = () => {
+    const m = new Date().getMonth() + 1;
+    if (m === 10 || m === 11) return { name: 'DIWALI LIGHTS', sky1: '#2A1635', sky2: '#E86A2C', road: '#4A3F3A' };
+    if (m === 3) return { name: 'HOLI COLOURS', sky1: '#FF758F', sky2: '#FFD166', road: '#6B625D' };
+    if (m === 7 || m === 8) return { name: 'MONSOON EDITION', sky1: '#455A64', sky2: '#90A4AE', road: '#4E5458' };
+    if (m === 12 || m === 1) return { name: 'WINTER FOG', sky1: '#90A4AE', sky2: '#CFD8DC', road: '#616161' };
+    return { name: 'MORNING GULLY', sky1: '#F2994A', sky2: '#F2C94C', road: '#68605B' };
+  };
+
+  let actx = null;
+  const ensureAudio = () => {
+    if (!actx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) actx = new AC();
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+  };
+  const playTone = (f1, f2, dur, type = 'sine', vol = 0.14) => {
+    if (save.opts.mute || !actx) return;
+    const t = actx.currentTime;
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f1, t);
+    if (f2 !== f1) o.frequency.exponentialRampToValueAtTime(Math.max(30, f2), t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t); o.stop(t + dur);
+  };
+  const SFX = {
+    coin: () => { playTone(880, 1320, 0.11, 'triangle', 0.12); },
+    jump: () => { playTone(220, 520, 0.16, 'sine', 0.13); },
+    slide: () => { playTone(320, 120, 0.18, 'sawtooth', 0.08); },
+    lane: () => { playTone(420, 560, 0.06, 'sine', 0.07); },
+    horn: () => { playTone(390, 395, 0.14, 'sawtooth', 0.09); setTimeout(() => playTone(390, 395, 0.14, 'sawtooth', 0.09), 170); },
+    boing: () => { playTone(140, 520, 0.25, 'sine', 0.18); setTimeout(() => playTone(520, 180, 0.2, 'sine', 0.14), 120); },
+    slip: () => { playTone(950, 210, 0.28, 'triangle', 0.15); },
+    cow: () => { playTone(165, 115, 0.55, 'sawtooth', 0.11); },
+    pigeon: () => { playTone(520, 440, 0.14, 'sine', 0.1); setTimeout(() => playTone(560, 460, 0.16, 'sine', 0.1), 160); },
+    dhol: () => { playTone(140, 55, 0.16, 'triangle', 0.22); },
+    laugh: () => { [0, 110, 220].forEach(ms => setTimeout(() => playTone(460, 310, 0.09, 'triangle', 0.12), ms)); },
+    power: () => { playTone(523, 1046, 0.24, 'triangle', 0.14); },
+  };
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const $ = (id) => document.getElementById(id);
+  const season = getSeason();
+  $('seasonSub').textContent = season.name;
+
+  let phase = 'title';
+  let W = 390, H = 844;
+  let dist = 0, score = 0, runCoins = 0, combo = 0, comboTimer = 0;
+  let speed = CFG.baseSpeed;
+  let lane = 0, targetLane = 0, playerX = 0, playerY = 0, velY = 0;
+  let slideTimer =
